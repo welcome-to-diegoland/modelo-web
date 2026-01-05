@@ -1,8 +1,15 @@
 import { useStore } from '../app/store'
 import initialImages from '../data/images.json'
 
-export default function HeaderTools() {
-  const { items, selectedId, selectItem, initializeItems } = useStore()
+type DrawingMode = 'select' | 'draw'
+
+type HeaderToolsProps = {
+  drawingMode?: DrawingMode
+  onDrawingModeChange?: (mode: DrawingMode) => void
+}
+
+export default function HeaderTools({ drawingMode = 'select', onDrawingModeChange }: HeaderToolsProps) {
+  const { items, shapes, selectedId, selectItem, initializeItems } = useStore()
 
   const handleReloadData = () => {
     localStorage.removeItem('modelo-document')
@@ -17,6 +24,10 @@ export default function HeaderTools() {
     }
   }
 
+  const handleAddShape = () => {
+    onDrawingModeChange?.('draw')
+  }
+
   return (
     <header className="header-tools">
       <div className="header-left">
@@ -26,12 +37,20 @@ export default function HeaderTools() {
 
       <div className="header-center">
         <span className="badge">{items.length} imágenes</span>
+        <span className="badge">{shapes.length} formas</span>
         {selectedId && (
           <span className="badge badge-selected">1 seleccionada</span>
         )}
       </div>
 
       <div className="header-right">
+        <button
+          onClick={handleAddShape}
+          className={`btn btn-small ${drawingMode === 'draw' ? 'btn-active' : ''}`}
+          title="Agregar forma"
+        >
+          Agregar Forma
+        </button>
         <button
           onClick={handleReloadData}
           className="btn btn-small"

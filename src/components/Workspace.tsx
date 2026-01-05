@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Stage, Layer, Rect } from 'react-konva'
+import Konva from 'konva'
 import { useStore } from '../app/store'
 import { PageComponent } from './PageCanvas'
 import { DraggableImage } from './ImageItem'
-import InspectorPanel from './InspectorPanel'
+import { ShapeItem } from './ShapeItem'
 import initialImages from '../data/images.json'
 
 // Aspecto A4 vertical: 210mm x 297mm = 1.414
@@ -21,8 +22,17 @@ interface Dimensions {
   marginRightX: number
 }
 
-export default function Workspace() {
-  const { items, selectedId, selectItem, moveItem, initializeItems } = useStore()
+type DrawingMode = 'select' | 'draw'
+
+type WorkspaceProps = {
+  drawingMode: DrawingMode
+  onDrawingModeChange: (mode: DrawingMode) => void
+  onEditingShapeChange?: (id: string | null) => void
+}
+
+export default function Workspace({ drawingMode, onDrawingModeChange, onEditingShapeChange }: WorkspaceProps) {
+  const stageRef = useRef<Konva.Stage>(null)
+  const { items, shapes, selectedId, selectItem, moveItem, initializeItems, addShape } = useStore()
   const [dimensions, setDimensions] = useState<Dimensions>({
     pageWidth: 400,
     pageHeight: 563,
@@ -34,6 +44,9 @@ export default function Workspace() {
     marginLeftX: 0,
     marginRightX: 560
   })
+  const [isDrawing, setIsDrawing] = useState(false)
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 })
+  const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 })
 
   // Calcular dimensiones responsivas
   useEffect(() => {
@@ -86,8 +99,54 @@ export default function Workspace() {
   return (
     <div className="workspace">
       {/* Canvas UNIFICADO - Contiene todo */}
-      <div className="canvas-container">
-        <Stage width={dimensions.canvasWidth} height={dimensions.canvasHeight}>
+      <div className="canvas-container" style={{ cursor: drawingMode === 'draw' ? 'crosshair' : 'default' }}>
+        <Stage 
+          ref={stageRef}
+          width={dimensions.canvasWidth} 
+          height={dimensions.canvasHeight}
+          onMouseDown={(e) => {
+            if (drawingMode === 'draw') {
+              const pos = e.target.getStage()!.getPointerPosition()!
+              setStartPos({ x: pos.x, y: pos.y })
+              setCurrentPos({ x: pos.x, y: pos.y })
+              setIsDrawing(true)
+            }
+          }}
+          onMouseMove={(e) => {
+            if (drawingMode === 'draw' && isDrawing) {
+              const pos = e.target.getStage()!.getPointerPosition()!
+              setCurrentPos({ x: pos.x, y: pos.y })
+            }
+          }}
+          onMouseUp={(e) => {
+            if (drawingMode === 'draw' && isDrawing) {
+              const endPos = e.target.getStage()!.getPointerPosition()!
+              const width = Math.abs(endPos.x - startPos.x)
+              const height = Math.abs(endPos.y - startPos.y)
+              
+              // Solo crear forma si tiene tamaño mínimo
+              if (width > 20 && height > 20) {
+                const newShape = {
+                  id: `shape-${Date.now()}`,
+                  x: Math.min(startPos.x, endPos.x),
+                  y: Math.min(startPos.y, endPos.y),
+                  width,
+                  height,
+                  text: 'Texto aquí',
+                  backgroundColor: '#06b6d4',
+                  borderColor: '#000000',
+                  borderWidth: 1,
+                  hasBorder: false,
+                  percentages: []
+                }
+                addShape(newShape)
+              }
+              
+              setIsDrawing(false)
+              onDrawingModeChange('select')
+            }
+          }}
+        >
           <Layer>
             {/* Margen izquierdo gris */}
             <Rect
@@ -139,12 +198,34 @@ export default function Workspace() {
                 }}
               />
             ))}
+
+            {/* TODAS las formas */}
+            {shapes.map(shape => (
+              <ShapeItem
+                key={shape.id}
+                shape={shape}
+                isSelected={shape.id === selectedId}
+                onSelect={() => selectItem(shape.id)}
+                onClick={() => onEditingShapeChange?.(shape.id)}
+              />
+            ))}
+
+            {/* Preview de forma mientras se dibuja */}
+            {isDrawing && (
+              <Rect
+                x={Math.min(startPos.x, currentPos.x)}
+                y={Math.min(startPos.y, currentPos.y)}
+                width={Math.abs(currentPos.x - startPos.x)}
+                height={Math.abs(currentPos.y - startPos.y)}
+                stroke="#06b6d4"
+                strokeWidth={2}
+                dash={[5, 5]}
+                fill="rgba(6, 182, 212, 0.1)"
+              />
+            )}
           </Layer>
         </Stage>
       </div>
-
-      {/* Panel inspector */}
-      <InspectorPanel />
     </div>
   )
 }

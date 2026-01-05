@@ -1,8 +1,9 @@
 import { create } from 'zustand'
-import { Item } from './types'
+import { Item, Shape } from './types'
 
 type Store = {
   items: Item[]
+  shapes: Shape[]
   selectedId: string | null
   selectItem: (id: string | null) => void
   moveItem: (id: string, x: number, y: number) => void
@@ -10,9 +11,15 @@ type Store = {
   deleteItem: (id: string) => void
   toggleItemBorder: (id: string) => void
   toggleItemPercentage: (id: string, percentage: number) => void
+  addShape: (shape: Shape) => void
+  deleteShape: (id: string) => void
+  updateShape: (id: string, updates: Partial<Shape>) => void
+  toggleShapeBorder: (id: string) => void
+  toggleShapePercentage: (id: string, percentage: number) => void
 }
 
 const STORAGE_KEY = 'modelo-document'
+const SHAPES_KEY = 'modelo-shapes'
 
 const loadFromStorage = (): Item[] => {
   try {
@@ -23,12 +30,26 @@ const loadFromStorage = (): Item[] => {
   }
 }
 
+const loadShapesFromStorage = (): Shape[] => {
+  try {
+    const stored = localStorage.getItem(SHAPES_KEY)
+    return stored ? JSON.parse(stored) : []
+  } catch {
+    return []
+  }
+}
+
 const saveToStorage = (items: Item[]) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
 }
 
+const saveShapesToStorage = (shapes: Shape[]) => {
+  localStorage.setItem(SHAPES_KEY, JSON.stringify(shapes))
+}
+
 export const useStore = create<Store>((set) => ({
   items: loadFromStorage(),
+  shapes: loadShapesFromStorage(),
   selectedId: null,
 
   selectItem: (id) => set({ selectedId: id }),
@@ -78,5 +99,51 @@ export const useStore = create<Store>((set) => ({
       })
       saveToStorage(updated)
       return { items: updated }
+    }),
+
+  addShape: (shape) =>
+    set((state) => {
+      const updated = [...state.shapes, shape]
+      saveShapesToStorage(updated)
+      return { shapes: updated }
+    }),
+
+  deleteShape: (id) =>
+    set((state) => {
+      const updated = state.shapes.filter(s => s.id !== id)
+      saveShapesToStorage(updated)
+      return { shapes: updated, selectedId: null }
+    }),
+
+  updateShape: (id, updates) =>
+    set((state) => {
+      const updated = state.shapes.map(s =>
+        s.id === id ? { ...s, ...updates } : s
+      )
+      saveShapesToStorage(updated)
+      return { shapes: updated }
+    }),
+
+  toggleShapeBorder: (id) =>
+    set((state) => {
+      const updated = state.shapes.map(s =>
+        s.id === id ? { ...s, hasBorder: !s.hasBorder } : s
+      )
+      saveShapesToStorage(updated)
+      return { shapes: updated }
+    }),
+
+  toggleShapePercentage: (id, percentage) =>
+    set((state) => {
+      const updated = state.shapes.map(s => {
+        if (s.id === id) {
+          const current = s.percentages || []
+          const newPercentages = current.includes(percentage) ? [] : [percentage]
+          return { ...s, percentages: newPercentages }
+        }
+        return s
+      })
+      saveShapesToStorage(updated)
+      return { shapes: updated }
     })
 }))
