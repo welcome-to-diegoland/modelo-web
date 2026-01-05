@@ -22,8 +22,8 @@ export const PAGES: Page[] = [
 export const INITIAL_ITEMS: Item[] = [
   {
     id: 'img-1',
-    x: 120,
-    y: 50,
+    x: 0,
+    y: 0,
     width: 150,
     height: 150,
     page: 1,
@@ -33,8 +33,8 @@ export const INITIAL_ITEMS: Item[] = [
   },
   {
     id: 'img-2',
-    x: 300,
-    y: 80,
+    x: 0,
+    y: 0,
     width: 120,
     height: 180,
     page: 1,
@@ -44,8 +44,8 @@ export const INITIAL_ITEMS: Item[] = [
   },
   {
     id: 'img-3',
-    x: 160,
-    y: 250,
+    x: 0,
+    y: 0,
     width: 180,
     height: 120,
     page: 1,
@@ -55,8 +55,8 @@ export const INITIAL_ITEMS: Item[] = [
   },
   {
     id: 'img-4',
-    x: 570,
-    y: 60,
+    x: 0,
+    y: 0,
     width: 160,
     height: 160,
     page: 2,
@@ -66,8 +66,8 @@ export const INITIAL_ITEMS: Item[] = [
   },
   {
     id: 'img-5',
-    x: 720,
-    y: 100,
+    x: 0,
+    y: 0,
     width: 100,
     height: 200,
     page: 2,

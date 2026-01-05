@@ -7,7 +7,9 @@ export type Item = {
   page: number
   imageUrl: string
   title?: string
+  brand?: string
   hasBorder?: boolean
+  percentages?: number[]
 }
 
 export type Page = {

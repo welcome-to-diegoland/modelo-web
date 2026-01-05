@@ -9,6 +9,7 @@ type Store = {
   initializeItems: (items: Item[]) => void
   deleteItem: (id: string) => void
   toggleItemBorder: (id: string) => void
+  toggleItemPercentage: (id: string, percentage: number) => void
 }
 
 const STORAGE_KEY = 'modelo-document'
@@ -58,6 +59,23 @@ export const useStore = create<Store>((set) => ({
       const updated = state.items.map(i =>
         i.id === id ? { ...i, hasBorder: !i.hasBorder } : i
       )
+      saveToStorage(updated)
+      return { items: updated }
+    }),
+
+  toggleItemPercentage: (id, percentage) =>
+    set((state) => {
+      const updated = state.items.map(i => {
+        if (i.id === id) {
+          const current = i.percentages || []
+          // Si ya tiene este porcentaje, lo deselecciona (vacía el array)
+          // Si tiene otro, lo reemplaza
+          // Si no tiene ninguno, lo agrega
+          const newPercentages = current.includes(percentage) ? [] : [percentage]
+          return { ...i, percentages: newPercentages }
+        }
+        return i
+      })
       saveToStorage(updated)
       return { items: updated }
     })

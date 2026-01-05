@@ -1,7 +1,7 @@
 import { useStore } from '../app/store'
 
 export default function InspectorPanel() {
-  const { items, selectedId, toggleItemBorder, deleteItem } = useStore()
+  const { items, selectedId, toggleItemBorder, deleteItem, toggleItemPercentage } = useStore()
 
   const selectedItem = items.find(i => i.id === selectedId)
 
@@ -13,10 +13,13 @@ export default function InspectorPanel() {
     )
   }
 
+  const percentageOptions = [10, 15, 20, 40, 50]
+
   return (
     <div className="inspector-panel">
       <div className="info-section">
         <h3 className="font-semibold">{selectedItem.title || 'Sin título'}</h3>
+        <p className="text-sm text-gray-600">Marca: {selectedItem.brand || 'Sin marca'}</p>
         <p className="text-sm text-gray-600">ID: {selectedItem.id}</p>
       </div>
 
@@ -33,8 +36,18 @@ export default function InspectorPanel() {
           onClick={() => toggleItemBorder(selectedItem.id)}
           className={`btn ${selectedItem.hasBorder ? 'btn-active' : 'btn-inactive'}`}
         >
-          {selectedItem.hasBorder ? '✓ Borde activado' : 'Agregar borde'}
+          {selectedItem.hasBorder ? '✓ Resaltado' : 'Resaltado'}
         </button>
+
+        {percentageOptions.map(percentage => (
+          <button
+            key={percentage}
+            onClick={() => toggleItemPercentage(selectedItem.id, percentage)}
+            className={`btn ${(selectedItem.percentages || []).includes(percentage) ? 'btn-active' : 'btn-inactive'}`}
+          >
+            {(selectedItem.percentages || []).includes(percentage) ? '✓ ' : ''}{percentage}%
+          </button>
+        ))}
 
         <button
           onClick={() => deleteItem(selectedItem.id)}
