@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Stage, Layer, Rect } from 'react-konva'
 import { useStore } from '../app/store'
 import { PageComponent } from './PageCanvas'
@@ -6,27 +6,75 @@ import { DraggableImage } from './ImageItem'
 import InspectorPanel from './InspectorPanel'
 import initialImages from '../data/images.json'
 
-// Dimensiones carta en píxeles (A4 vertical)
-const PAGE_WIDTH = 400
-const PAGE_HEIGHT = 563
+// Aspecto A4 vertical: 210mm x 297mm = 1.414
+const A4_ASPECT_RATIO = 297 / 210
 
-// Espacios grises laterales
-const MARGIN_WIDTH = 80
-
-// Canvas unificado
-const CANVAS_WIDTH = MARGIN_WIDTH + PAGE_WIDTH + PAGE_WIDTH + MARGIN_WIDTH
-const CANVAS_HEIGHT = PAGE_HEIGHT
-
-// Posiciones X de cada elemento
-const MARGIN_LEFT_X = 0
-const PAGE1_X = MARGIN_WIDTH
-const PAGE2_X = MARGIN_WIDTH + PAGE_WIDTH
-const MARGIN_RIGHT_X = MARGIN_WIDTH + PAGE_WIDTH + PAGE_WIDTH
-const PAGE1_Y = 0
-const PAGE2_Y = 0
+interface Dimensions {
+  pageWidth: number
+  pageHeight: number
+  canvasWidth: number
+  canvasHeight: number
+  marginWidth: number
+  page1X: number
+  page2X: number
+  marginLeftX: number
+  marginRightX: number
+}
 
 export default function Workspace() {
   const { items, selectedId, selectItem, moveItem, initializeItems } = useStore()
+  const [dimensions, setDimensions] = useState<Dimensions>({
+    pageWidth: 400,
+    pageHeight: 563,
+    canvasWidth: 800,
+    canvasHeight: 563,
+    marginWidth: 80,
+    page1X: 80,
+    page2X: 480,
+    marginLeftX: 0,
+    marginRightX: 560
+  })
+
+  // Calcular dimensiones responsivas
+  useEffect(() => {
+    const calculateDimensions = () => {
+      // Espacios fijos: header (70px) + inspector (120px) = 190px
+      const HEADER_HEIGHT = 70
+      const INSPECTOR_HEIGHT = 120
+      
+      const availableHeight = window.innerHeight - HEADER_HEIGHT - INSPECTOR_HEIGHT
+      const availableWidth = window.innerWidth
+      
+      // El ancho de una página basado en la altura disponible y aspecto A4
+      const pageHeight = Math.max(400, availableHeight)
+      const pageWidth = pageHeight / A4_ASPECT_RATIO
+      
+      // Ancho total de 2 páginas
+      const pagesWidthTotal = pageWidth * 2
+      
+      // Espacio restante para márgenes (dividido entre 2 lados)
+      const remainingWidth = availableWidth - pagesWidthTotal
+      const marginWidth = Math.max(30, remainingWidth / 2)
+      
+      const canvasWidth = marginWidth + pageWidth + pageWidth + marginWidth
+      
+      setDimensions({
+        pageWidth: Math.floor(pageWidth),
+        pageHeight: Math.floor(pageHeight),
+        canvasWidth: Math.floor(canvasWidth),
+        canvasHeight: Math.floor(pageHeight),
+        marginWidth: Math.floor(marginWidth),
+        marginLeftX: 0,
+        page1X: Math.floor(marginWidth),
+        page2X: Math.floor(marginWidth + pageWidth),
+        marginRightX: Math.floor(marginWidth + pageWidth + pageWidth)
+      })
+    }
+
+    calculateDimensions()
+    window.addEventListener('resize', calculateDimensions)
+    return () => window.removeEventListener('resize', calculateDimensions)
+  }, [])
 
   // Inicializar con datos si está vacío
   useEffect(() => {
@@ -39,14 +87,14 @@ export default function Workspace() {
     <div className="workspace">
       {/* Canvas UNIFICADO - Contiene todo */}
       <div className="canvas-container">
-        <Stage width={CANVAS_WIDTH} height={CANVAS_HEIGHT}>
+        <Stage width={dimensions.canvasWidth} height={dimensions.canvasHeight}>
           <Layer>
             {/* Margen izquierdo gris */}
             <Rect
-              x={MARGIN_LEFT_X}
+              x={dimensions.marginLeftX}
               y={0}
-              width={MARGIN_WIDTH}
-              height={CANVAS_HEIGHT}
+              width={dimensions.marginWidth}
+              height={dimensions.canvasHeight}
               fill="#ccc"
               opacity={0.3}
             />
@@ -54,27 +102,27 @@ export default function Workspace() {
             {/* Página 1 */}
             <PageComponent
               pageId={1}
-              x={PAGE1_X}
-              y={PAGE1_Y}
-              width={PAGE_WIDTH}
-              height={PAGE_HEIGHT}
+              x={dimensions.page1X}
+              y={0}
+              width={dimensions.pageWidth}
+              height={dimensions.pageHeight}
             />
 
             {/* Página 2 */}
             <PageComponent
               pageId={2}
-              x={PAGE2_X}
-              y={PAGE2_Y}
-              width={PAGE_WIDTH}
-              height={PAGE_HEIGHT}
+              x={dimensions.page2X}
+              y={0}
+              width={dimensions.pageWidth}
+              height={dimensions.pageHeight}
             />
 
             {/* Margen derecho gris */}
             <Rect
-              x={MARGIN_RIGHT_X}
+              x={dimensions.marginRightX}
               y={0}
-              width={MARGIN_WIDTH}
-              height={CANVAS_HEIGHT}
+              width={dimensions.marginWidth}
+              height={dimensions.canvasHeight}
               fill="#ccc"
               opacity={0.3}
             />
