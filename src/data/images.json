@@ -1,0 +1,57 @@
+[
+  {
+    "id": "img-1",
+    "x": 120,
+    "y": 50,
+    "width": 150,
+    "height": 150,
+    "page": 1,
+    "imageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
+    "title": "Mountain Landscape",
+    "hasBorder": false
+  },
+  {
+    "id": "img-2",
+    "x": 300,
+    "y": 80,
+    "width": 120,
+    "height": 180,
+    "page": 1,
+    "imageUrl": "https://images.unsplash.com/photo-1469022563149-aa64dbd37dc0?w=300&h=400&fit=crop",
+    "title": "Forest Scene",
+    "hasBorder": false
+  },
+  {
+    "id": "img-3",
+    "x": 160,
+    "y": 250,
+    "width": 180,
+    "height": 120,
+    "page": 1,
+    "imageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+    "title": "Ocean View",
+    "hasBorder": false
+  },
+  {
+    "id": "img-4",
+    "x": 570,
+    "y": 60,
+    "width": 160,
+    "height": 160,
+    "page": 2,
+    "imageUrl": "https://images.unsplash.com/photo-1470252649378-9c29740ff023?w=300&h=300&fit=crop",
+    "title": "Desert Dunes",
+    "hasBorder": false
+  },
+  {
+    "id": "img-5",
+    "x": 720,
+    "y": 100,
+    "width": 100,
+    "height": 200,
+    "page": 2,
+    "imageUrl": "https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=300&h=500&fit=crop",
+    "title": "City Lights",
+    "hasBorder": false
+  }
+]
