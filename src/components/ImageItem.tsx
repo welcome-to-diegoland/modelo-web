@@ -8,13 +8,17 @@ type DraggableImageProps = {
   selected: boolean
   onSelect: () => void
   onDragEnd: (x: number, y: number) => void
+  pageOffsetX?: number
+  pageOffsetY?: number
 }
 
 export function DraggableImage({ 
   item, 
   selected, 
   onSelect, 
-  onDragEnd 
+  onDragEnd,
+  pageOffsetX = 0,
+  pageOffsetY = 0
 }: DraggableImageProps) {
   const [image, status] = useImage(item.imageUrl)
   const [imageError, setImageError] = useState(false)
@@ -22,50 +26,50 @@ export function DraggableImage({
   const strokeColor = selected ? '#3b82f6' : undefined
   const strokeWidth = selected ? 3 : 0
 
-  // Si hay error de imagen o no cargó, mostrar rectángulo gris
+  // Si hay error de imagen o no cargó, mostrar rectángulo gris con información
   if (imageError || status === 'failed') {
+    const fontSize = Math.max(8, Math.min(11, item.width / 35))
+    const padding = 6
+    const totalHeight = item.height
+    const contentHeight = totalHeight - padding * 2
+    // Construir texto con saltos de línea: Título\nMarca\nItemCode - TODO EN BOLD
+    const fullText = `${item.title || 'Sin título'}\n${item.brand || 'Sin marca'}\n${item.itemCode || 'Sin código'}`
+    
     return (
       <Group
-        x={item.x}
-        y={item.y}
+        x={item.x + pageOffsetX}
+        y={item.y + pageOffsetY}
         draggable
         onClick={onSelect}
         onMouseDown={onSelect}
         onDragEnd={(e) => {
-          const newX = e.target.x()
-          const newY = e.target.y()
+          const newX = e.target.x() - pageOffsetX
+          const newY = e.target.y() - pageOffsetY
           onDragEnd(newX, newY)
         }}
       >
-        {/* Rectángulo gris de fondo */}
+        {/* Rectángulo gris de fondo con outline */}
         <Rect
           x={0}
           y={0}
           width={item.width}
           height={item.height}
-          fill="#d3d3d3"
-          stroke={strokeColor}
-          strokeWidth={strokeWidth}
+          fill="#e5e7eb"
+          stroke="#000000"
+          strokeWidth={1}
         />
-        {/* Texto con título y marca */}
+        {/* Texto combinado: Título\nMarca\nItemCode - TODO EN BOLD */}
         <Text
-          x={5}
-          y={item.height / 2 - 20}
-          text={item.title || 'Sin título'}
-          fontSize={11}
+          x={padding}
+          y={item.height / 2 - (fontSize * 1.5)}
+          text={fullText}
+          fontSize={fontSize * 1.3}
           fontStyle="bold"
-          fill="#333"
-          width={item.width - 10}
+          fill="#1f2937"
+          width={item.width - padding * 2}
           align="center"
-        />
-        <Text
-          x={5}
-          y={item.height / 2 - 5}
-          text={item.brand || 'Sin marca'}
-          fontSize={11}
-          fill="#333"
-          width={item.width - 10}
-          align="center"
+          verticalAlign="middle"
+          lineHeight={0.9}
         />
         {/* Ícono de resaltado si tiene borde */}
         {item.hasBorder && (
@@ -160,8 +164,8 @@ export function DraggableImage({
   if (status === 'loading') {
     return (
       <Rect
-        x={item.x}
-        y={item.y}
+        x={item.x + pageOffsetX}
+        y={item.y + pageOffsetY}
         width={item.width}
         height={item.height}
         fill="#e8e8e8"
@@ -182,14 +186,14 @@ export function DraggableImage({
   // Imagen normal
   return (
     <Group
-      x={item.x}
-      y={item.y}
+      x={item.x + pageOffsetX}
+      y={item.y + pageOffsetY}
       draggable
       onClick={onSelect}
       onMouseDown={onSelect}
       onDragEnd={(e) => {
-        const newX = e.target.x()
-        const newY = e.target.y()
+        const newX = e.target.x() - pageOffsetX
+        const newY = e.target.y() - pageOffsetY
         onDragEnd(newX, newY)
       }}
     >
@@ -199,9 +203,18 @@ export function DraggableImage({
         y={0}
         width={item.width}
         height={item.height}
-        stroke={strokeColor}
-        strokeWidth={strokeWidth}
         onError={() => setImageError(true)}
+      />
+      {/* Outline negro para la imagen */}
+      <Rect
+        x={0}
+        y={0}
+        width={item.width}
+        height={item.height}
+        stroke="#000000"
+        strokeWidth={1}
+        fill={null}
+        pointerEvents="none"
       />
       {/* Ícono de triángulo de exclamación si tiene borde - círculo verde */}
       {item.hasBorder && (

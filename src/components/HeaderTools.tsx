@@ -6,10 +6,14 @@ type DrawingMode = 'select' | 'draw'
 type HeaderToolsProps = {
   drawingMode?: DrawingMode
   onDrawingModeChange?: (mode: DrawingMode) => void
+  activePage?: number
+  dimensions?: any
 }
 
-export default function HeaderTools({ drawingMode = 'select', onDrawingModeChange }: HeaderToolsProps) {
-  const { items, shapes, selectedId, selectItem, initializeItems, clearAllShapes, clearEverything } = useStore()
+export default function HeaderTools({ drawingMode = 'select', onDrawingModeChange, activePage = 1, dimensions }: HeaderToolsProps) {
+  const { items, selectedId, selectItem, initializeItems, clearAllShapes, clearEverything, autoLayoutPage, layoutMode, cycleLayoutMode, zoom, setZoom } = useStore()
+
+  const activePageItemCount = items.filter(item => item.page === activePage).length
 
   const handleReloadData = () => {
     localStorage.removeItem('modelo-document')
@@ -33,6 +37,38 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
     onDrawingModeChange?.('draw')
   }
 
+  const handleAutoLayout = () => {
+    if (!dimensions) return
+    
+    cycleLayoutMode()
+    
+    setTimeout(() => {
+      if (activePage === 1) {
+        autoLayoutPage(1, dimensions.pageWidth, dimensions.pageHeight, dimensions.page1X, dimensions.page1Y)
+      } else {
+        autoLayoutPage(2, dimensions.pageWidth, dimensions.pageHeight, dimensions.page2X, dimensions.page2Y)
+      }
+    }, 0)
+  }
+
+  const getModeLabel = () => {
+    if (layoutMode === 1) return 'Auto-acomodar (Normal)'
+    if (layoutMode === 2) return 'Auto-acomodar (Por altura)'
+    return 'Auto-acomodar (Por ancho)'
+  }
+
+  const handleZoomIn = () => {
+    setZoom(Math.min(zoom + 0.1, 2))
+  }
+
+  const handleZoomOut = () => {
+    setZoom(Math.max(zoom - 0.1, 0.5))
+  }
+
+  const handleZoomReset = () => {
+    setZoom(1)
+  }
+
   return (
     <header className="header-tools">
       <div className="header-left">
@@ -41,20 +77,51 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
       </div>
 
       <div className="header-center">
-        <span className="badge">{items.length} imágenes</span>
-        <span className="badge">{shapes.length} formas</span>
+        <span className="badge">{activePageItemCount} imágenes</span>
+        <span className="badge badge-page">Página {activePage}</span>
         {selectedId && (
           <span className="badge badge-selected">1 seleccionada</span>
         )}
       </div>
 
       <div className="header-right">
+        <div className="zoom-controls">
+          <button
+            onClick={handleZoomOut}
+            className="btn btn-small"
+            title="Alejar"
+          >
+            −
+          </button>
+          <span className="zoom-display">{Math.round(zoom * 100)}%</span>
+          <button
+            onClick={handleZoomIn}
+            className="btn btn-small"
+            title="Acercar"
+          >
+            +
+          </button>
+          <button
+            onClick={handleZoomReset}
+            className="btn btn-small"
+            title="Zoom por defecto"
+          >
+            100%
+          </button>
+        </div>
         <button
           onClick={handleAddShape}
           className={`btn btn-small ${drawingMode === 'draw' ? 'btn-active' : ''}`}
           title="Agregar forma"
         >
           Agregar Forma
+        </button>
+        <button
+          onClick={handleAutoLayout}
+          className="btn btn-small"
+          title={getModeLabel()}
+        >
+          {getModeLabel()}
         </button>
         <button
           onClick={handleReloadData}
@@ -80,7 +147,7 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
         <button
           onClick={handleClearAll}
           className="btn btn-small btn-danger"
-          title="Limpiar todo (no se puede deshacer)"
+          title="Limpiar todo"
         >
           Limpiar Todo
         </button>

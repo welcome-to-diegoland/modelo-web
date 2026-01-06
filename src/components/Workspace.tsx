@@ -17,9 +17,12 @@ interface Dimensions {
   canvasHeight: number
   marginWidth: number
   page1X: number
+  page1Y: number
   page2X: number
+  page2Y: number
   marginLeftX: number
   marginRightX: number
+  pageGap: number
 }
 
 type DrawingMode = 'select' | 'draw'
@@ -28,21 +31,27 @@ type WorkspaceProps = {
   drawingMode: DrawingMode
   onDrawingModeChange: (mode: DrawingMode) => void
   onEditingShapeChange?: (id: string | null) => void
+  onActivePageChange?: (page: number) => void
+  onDimensionsChange?: (dimensions: any) => void
 }
 
-export default function Workspace({ drawingMode, onDrawingModeChange, onEditingShapeChange }: WorkspaceProps) {
+export default function Workspace({ drawingMode, onDrawingModeChange, onEditingShapeChange, onActivePageChange, onDimensionsChange }: WorkspaceProps) {
   const stageRef = useRef<Konva.Stage>(null)
-  const { items, shapes, selectedId, selectItem, moveItem, initializeItems, addShape } = useStore()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { items, shapes, selectedId, selectItem, moveItem, initializeItems, addShape, zoom } = useStore()
   const [dimensions, setDimensions] = useState<Dimensions>({
     pageWidth: 400,
     pageHeight: 563,
-    canvasWidth: 800,
-    canvasHeight: 563,
+    canvasWidth: 560,
+    canvasHeight: 1276,
     marginWidth: 80,
     page1X: 80,
-    page2X: 480,
+    page1Y: 0,
+    page2X: 80,
+    page2Y: 613,
     marginLeftX: 0,
-    marginRightX: 560
+    marginRightX: 480,
+    pageGap: 50
   })
   const [isDrawing, setIsDrawing] = useState(false)
   const [startPos, setStartPos] = useState({ x: 0, y: 0 })
@@ -51,36 +60,29 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
   // Calcular dimensiones responsivas
   useEffect(() => {
     const calculateDimensions = () => {
-      // Espacios fijos: header (70px) + inspector (120px) = 190px
-      const HEADER_HEIGHT = 70
-      const INSPECTOR_HEIGHT = 120
+      // Tamaño FIJO de la página A4
+      const FIXED_PAGE_WIDTH = 600 // Ancho fijo
+      const FIXED_PAGE_HEIGHT = Math.round(FIXED_PAGE_WIDTH * (297 / 210)) // Proporción A4
+      const PAGE_GAP = 50
       
-      const availableHeight = window.innerHeight - HEADER_HEIGHT - INSPECTOR_HEIGHT
-      const availableWidth = window.innerWidth
-      
-      // El ancho de una página basado en la altura disponible y aspecto A4
-      const pageHeight = Math.max(400, availableHeight)
-      const pageWidth = pageHeight / A4_ASPECT_RATIO
-      
-      // Ancho total de 2 páginas
-      const pagesWidthTotal = pageWidth * 2
-      
-      // Espacio restante para márgenes (dividido entre 2 lados)
-      const remainingWidth = availableWidth - pagesWidthTotal
-      const marginWidth = Math.max(30, remainingWidth / 2)
-      
-      const canvasWidth = marginWidth + pageWidth + pageWidth + marginWidth
+      // Canvas: margen (600) + página (600) + margen (600) = 1800px
+      // Las 2 páginas comparten el mismo ancho, apiladas verticalmente
+      const canvasWidth = FIXED_PAGE_WIDTH * 3
+      const canvasHeight = FIXED_PAGE_HEIGHT * 2 + PAGE_GAP
       
       setDimensions({
-        pageWidth: Math.floor(pageWidth),
-        pageHeight: Math.floor(pageHeight),
+        pageWidth: FIXED_PAGE_WIDTH,
+        pageHeight: FIXED_PAGE_HEIGHT,
         canvasWidth: Math.floor(canvasWidth),
-        canvasHeight: Math.floor(pageHeight),
-        marginWidth: Math.floor(marginWidth),
+        canvasHeight: Math.floor(canvasHeight),
+        marginWidth: FIXED_PAGE_WIDTH,
         marginLeftX: 0,
-        page1X: Math.floor(marginWidth),
-        page2X: Math.floor(marginWidth + pageWidth),
-        marginRightX: Math.floor(marginWidth + pageWidth + pageWidth)
+        page1X: FIXED_PAGE_WIDTH,
+        page1Y: 0,
+        page2X: FIXED_PAGE_WIDTH,
+        page2Y: FIXED_PAGE_HEIGHT + PAGE_GAP,
+        marginRightX: FIXED_PAGE_WIDTH * 2,
+        pageGap: PAGE_GAP
       })
     }
 
@@ -89,6 +91,11 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
     return () => window.removeEventListener('resize', calculateDimensions)
   }, [])
 
+  // Notificar cambios de dimensiones
+  useEffect(() => {
+    onDimensionsChange?.(dimensions)
+  }, [dimensions, onDimensionsChange])
+
   // Inicializar con datos si está vacío
   useEffect(() => {
     if (items.length === 0) {
@@ -96,14 +103,44 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
     }
   }, [items.length, initializeItems])
 
+  // Detectar página activa basada en scroll
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop
+      const containerHeight = container.clientHeight
+      const centerPoint = scrollTop + containerHeight / 2
+
+      // Determinamos cuál página está más visible
+      const page1Bottom = dimensions.page1Y + dimensions.pageHeight
+      const page2Top = dimensions.page2Y
+
+      if (centerPoint < page2Top) {
+        onActivePageChange?.(1)
+      } else {
+        onActivePageChange?.(2)
+      }
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [dimensions, onActivePageChange])
+
   return (
     <div className="workspace">
       {/* Canvas UNIFICADO - Contiene todo */}
-      <div className="canvas-container" style={{ cursor: drawingMode === 'draw' ? 'crosshair' : 'default' }}>
-        <Stage 
-          ref={stageRef}
-          width={dimensions.canvasWidth} 
-          height={dimensions.canvasHeight}
+      <div ref={containerRef} className="canvas-container" style={{ cursor: drawingMode === 'draw' ? 'crosshair' : 'default' }}>
+        <div style={{ width: `${dimensions.canvasWidth}px`, height: `${dimensions.canvasHeight}px` }}>
+          <Stage 
+            ref={stageRef}
+            width={dimensions.canvasWidth} 
+            height={dimensions.canvasHeight}
+            scaleX={zoom}
+            scaleY={zoom}
+            offsetX={(dimensions.canvasWidth * (1 - zoom)) / 2}
+            offsetY={0}
           onMouseDown={(e) => {
             if (drawingMode === 'draw') {
               const pos = e.target.getStage()!.getPointerPosition()!
@@ -150,21 +187,11 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
           }}
         >
           <Layer>
-            {/* Margen izquierdo gris */}
-            <Rect
-              x={dimensions.marginLeftX}
-              y={0}
-              width={dimensions.marginWidth}
-              height={dimensions.canvasHeight}
-              fill="#ccc"
-              opacity={0.3}
-            />
-            
             {/* Página 1 */}
             <PageComponent
               pageId={1}
               x={dimensions.page1X}
-              y={0}
+              y={dimensions.page1Y}
               width={dimensions.pageWidth}
               height={dimensions.pageHeight}
             />
@@ -173,23 +200,13 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
             <PageComponent
               pageId={2}
               x={dimensions.page2X}
-              y={0}
+              y={dimensions.page2Y}
               width={dimensions.pageWidth}
               height={dimensions.pageHeight}
             />
 
-            {/* Margen derecho gris */}
-            <Rect
-              x={dimensions.marginRightX}
-              y={0}
-              width={dimensions.marginWidth}
-              height={dimensions.canvasHeight}
-              fill="#ccc"
-              opacity={0.3}
-            />
-
-            {/* TODAS las imágenes (sin filtrar por página) */}
-            {items.map(item => (
+            {/* Imágenes página 1 */}
+            {items.filter(item => item.page === 1).map(item => (
               <DraggableImage
                 key={item.id}
                 item={item}
@@ -198,6 +215,23 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
                 onDragEnd={(x, y) => {
                   moveItem(item.id, x, y)
                 }}
+                pageOffsetX={dimensions.page1X}
+                pageOffsetY={dimensions.page1Y}
+              />
+            ))}
+
+            {/* Imágenes página 2 */}
+            {items.filter(item => item.page === 2).map(item => (
+              <DraggableImage
+                key={item.id}
+                item={item}
+                selected={item.id === selectedId}
+                onSelect={() => selectItem(item.id)}
+                onDragEnd={(x, y) => {
+                  moveItem(item.id, x, y)
+                }}
+                pageOffsetX={dimensions.page2X}
+                pageOffsetY={dimensions.page2Y}
               />
             ))}
 
@@ -227,6 +261,7 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
             )}
           </Layer>
         </Stage>
+        </div>
       </div>
     </div>
   )
