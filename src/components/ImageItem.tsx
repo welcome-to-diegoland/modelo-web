@@ -30,6 +30,7 @@ export function DraggableImage({
         y={item.y}
         draggable
         onClick={onSelect}
+        onMouseDown={onSelect}
         onDragEnd={(e) => {
           const newX = e.target.x()
           const newY = e.target.y()
@@ -70,44 +71,47 @@ export function DraggableImage({
         {item.hasBorder && (
           <>
             <Circle
-              x={item.width - 12}
-              y={12}
-              radius={12}
+              x={item.width - 15}
+              y={15}
+              radius={15}
               fill="#22c55e"
               stroke="#16a34a"
               strokeWidth={2}
             />
             <Text
-              x={item.width - 20}
-              y={4}
+              x={item.width - 15}
+              y={15}
               text="!"
-              fontSize={18}
+              fontSize={26}
               fontFamily="Arial"
               fontStyle="bold"
+              fontWeight={900}
               fill="white"
               align="center"
-              width={16}
+              verticalAlign="middle"
+              offsetX={5}
+              offsetY={10}
             />
           </>
         )}
-        {/* Íconos de porcentajes en esquina inferior derecha */}
+        {/* Íconos de porcentajes en esquina inferior izquierda */}
         {item.percentages && item.percentages.length > 0 && (
           <>
             {item.percentages.map((percentage, index) => (
               <Group key={percentage}>
                 <Circle
-                  x={item.width - 15 - (index * 30)}
-                  y={item.height - 12}
-                  radius={12}
+                  x={15 + (index * 35)}
+                  y={item.height - 15}
+                  radius={15}
                   fill="#ef4444"
                   stroke="#dc2626"
                   strokeWidth={2}
                 />
                 <Text
-                  x={item.width - 15 - (index * 30)}
-                  y={item.height - 12}
+                  x={15 + (index * 35)}
+                  y={item.height - 15}
                   text={`${percentage}`}
-                  fontSize={16}
+                  fontSize={18}
                   fontFamily="Arial"
                   fontStyle="bold"
                   fill="white"
@@ -119,6 +123,33 @@ export function DraggableImage({
                 />
               </Group>
             ))}
+          </>
+        )}
+        {/* Icono de Forros en esquina inferior derecha */}
+        {item.hasForros && (
+          <>
+            <Circle
+              x={item.width - 15}
+              y={item.height - 15}
+              radius={15}
+              fill="#fbbf24"
+              stroke="#f59e0b"
+              strokeWidth={2}
+            />
+            <Text
+              x={item.width - 15}
+              y={item.height - 15}
+              text="F"
+              fontSize={26}
+              fontFamily="Arial"
+              fontStyle="bold"
+              fontWeight={900}
+              fill="#000"
+              align="center"
+              verticalAlign="middle"
+              offsetX={7}
+              offsetY={10}
+            />
           </>
         )}
       </Group>
@@ -138,6 +169,7 @@ export function DraggableImage({
         strokeWidth={strokeWidth}
         draggable
         onClick={onSelect}
+        onMouseDown={onSelect}
         onDragEnd={(e) => {
           const newX = e.target.x()
           const newY = e.target.y()
@@ -154,6 +186,7 @@ export function DraggableImage({
       y={item.y}
       draggable
       onClick={onSelect}
+      onMouseDown={onSelect}
       onDragEnd={(e) => {
         const newX = e.target.x()
         const newY = e.target.y()
@@ -174,44 +207,47 @@ export function DraggableImage({
       {item.hasBorder && (
         <>
           <Circle
-            x={item.width - 12}
-            y={12}
-            radius={12}
+            x={item.width - 15}
+            y={15}
+            radius={15}
             fill="#22c55e"
             stroke="#16a34a"
             strokeWidth={2}
           />
           <Text
-            x={item.width - 20}
-            y={4}
+            x={item.width - 15}
+            y={15}
             text="!"
-            fontSize={18}
+            fontSize={26}
             fontFamily="Arial"
             fontStyle="bold"
+            fontWeight={900}
             fill="white"
             align="center"
-            width={16}
+            verticalAlign="middle"
+            offsetX={5}
+            offsetY={10}
           />
         </>
       )}
-      {/* Íconos de porcentajes en esquina inferior derecha */}
+      {/* Íconos de porcentajes en esquina inferior izquierda */}
       {item.percentages && item.percentages.length > 0 && (
         <>
           {item.percentages.map((percentage, index) => (
             <Group key={percentage}>
               <Circle
-                x={item.width - 15 - (index * 30)}
-                y={item.height - 12}
-                radius={12}
+                x={15 + (index * 35)}
+                y={item.height - 15}
+                radius={15}
                 fill="#ef4444"
                 stroke="#dc2626"
                 strokeWidth={2}
               />
               <Text
-                x={item.width - 15 - (index * 30)}
-                y={item.height - 12}
+                x={15 + (index * 35)}
+                y={item.height - 15}
                 text={`${percentage}`}
-                fontSize={16}
+                fontSize={18}
                 fontFamily="Arial"
                 fontStyle="bold"
                 fill="white"
@@ -223,6 +259,33 @@ export function DraggableImage({
               />
             </Group>
           ))}
+        </>
+      )}
+      {/* Icono de Forros en esquina inferior derecha */}
+      {item.hasForros && (
+        <>
+          <Circle
+            x={item.width - 15}
+            y={item.height - 15}
+            radius={15}
+            fill="#fbbf24"
+            stroke="#f59e0b"
+            strokeWidth={2}
+          />
+          <Text
+            x={item.width - 15}
+            y={item.height - 15}
+            text="F"
+            fontSize={26}
+            fontFamily="Arial"
+            fontStyle="bold"
+            fontWeight={900}
+            fill="#000"
+            align="center"
+            verticalAlign="middle"
+            offsetX={7}
+            offsetY={10}
+          />
         </>
       )}
     </Group>

@@ -132,14 +132,16 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
                   y: Math.min(startPos.y, endPos.y),
                   width,
                   height,
-                  text: 'Texto aquí',
-                  backgroundColor: '#06b6d4',
-                  borderColor: '#000000',
-                  borderWidth: 1,
+                  text: '',
+                  backgroundColor: '#a5f3fc',
+                  borderColor: '#0891b2',
+                  borderWidth: 2,
                   hasBorder: false,
                   percentages: []
                 }
                 addShape(newShape)
+                selectItem(newShape.id)
+                onEditingShapeChange?.(newShape.id)
               }
               
               setIsDrawing(false)

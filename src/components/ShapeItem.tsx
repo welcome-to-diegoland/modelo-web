@@ -12,8 +12,8 @@ type ShapeItemProps = {
 export function ShapeItem({ shape, isSelected, onSelect, onClick }: ShapeItemProps) {
   const { updateShape } = useStore()
 
-  const strokeColor = isSelected ? '#3b82f6' : (shape.hasBorder ? '#000' : 'transparent')
-  const strokeWidth = isSelected ? 3 : (shape.hasBorder ? 2 : 0)
+  const strokeColor = isSelected ? '#3b82f6' : shape.borderColor
+  const strokeWidth = isSelected ? 3 : shape.borderWidth
 
   const handleDragEnd = (e: any) => {
     const newX = e.target.x()
@@ -86,23 +86,26 @@ export function ShapeItem({ shape, isSelected, onSelect, onClick }: ShapeItemPro
       {shape.hasBorder && (
         <>
           <Circle
-            x={shape.width - 12}
-            y={12}
-            radius={12}
+            x={shape.width - 15}
+            y={15}
+            radius={15}
             fill="#22c55e"
             stroke="#16a34a"
             strokeWidth={2}
           />
           <Text
-            x={shape.width - 20}
-            y={4}
+            x={shape.width - 15}
+            y={15}
             text="!"
-            fontSize={18}
+            fontSize={26}
             fontFamily="Arial"
             fontStyle="bold"
+            fontWeight={900}
             fill="white"
             align="center"
-            width={16}
+            verticalAlign="middle"
+            offsetX={5}
+            offsetY={10}
           />
         </>
       )}
@@ -113,18 +116,18 @@ export function ShapeItem({ shape, isSelected, onSelect, onClick }: ShapeItemPro
           {shape.percentages.map((percentage, index) => (
             <Group key={percentage}>
               <Circle
-                x={shape.width - 15 - (index * 30)}
-                y={shape.height - 12}
-                radius={12}
+                x={15 + (index * 35)}
+                y={shape.height - 15}
+                radius={15}
                 fill="#ef4444"
                 stroke="#dc2626"
                 strokeWidth={2}
               />
               <Text
-                x={shape.width - 15 - (index * 30)}
-                y={shape.height - 12}
+                x={15 + (index * 35)}
+                y={shape.height - 15}
                 text={`${percentage}`}
-                fontSize={16}
+                fontSize={18}
                 fontFamily="Arial"
                 fontStyle="bold"
                 fill="white"
@@ -136,6 +139,34 @@ export function ShapeItem({ shape, isSelected, onSelect, onClick }: ShapeItemPro
               />
             </Group>
           ))}
+        </>
+      )}
+
+      {/* Icono de Forros en esquina inferior derecha */}
+      {shape.hasForros && (
+        <>
+          <Circle
+            x={shape.width - 15}
+            y={shape.height - 15}
+            radius={15}
+            fill="#fbbf24"
+            stroke="#f59e0b"
+            strokeWidth={2}
+          />
+          <Text
+            x={shape.width - 15}
+            y={shape.height - 15}
+            text="F"
+            fontSize={26}
+            fontFamily="Arial"
+            fontStyle="bold"
+            fontWeight={900}
+            fill="#000"
+            align="center"
+            verticalAlign="middle"
+            offsetX={7}
+            offsetY={10}
+          />
         </>
       )}
 

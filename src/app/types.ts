@@ -8,7 +8,10 @@ export type Item = {
   imageUrl: string
   title?: string
   brand?: string
+  itemCode?: string
+  itemGroup?: string
   hasBorder?: boolean
+  hasForros?: boolean
   percentages?: number[]
 }
 
@@ -23,6 +26,7 @@ export type Shape = {
   borderColor: string
   borderWidth: number
   hasBorder?: boolean
+  hasForros?: boolean
   percentages?: number[]
 }
 

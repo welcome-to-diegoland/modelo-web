@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useStore } from '../app/store'
 
 type InspectorPanelProps = {
@@ -7,8 +7,9 @@ type InspectorPanelProps = {
 }
 
 export default function InspectorPanel({ editingShapeId, onEditingShapeChange }: InspectorPanelProps) {
-  const { items, shapes, selectedId, toggleItemBorder, deleteItem, toggleItemPercentage, updateShape, deleteShape, toggleShapePercentage } = useStore()
+  const { items, shapes, selectedId, toggleItemBorder, toggleItemForros, deleteItem, toggleItemPercentage, updateShape, deleteShape, toggleShapeBorder, toggleShapeForros, toggleShapePercentage } = useStore()
   const [editText, setEditText] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const selectedItem = items.find(i => i.id === selectedId)
   const selectedShape = shapes.find(s => s.id === selectedId)
@@ -18,8 +19,12 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
   useEffect(() => {
     if (editingShape) {
       setEditText(editingShape.text)
+      // Auto-focus en el input cuando editingShapeId cambia
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 0)
     }
-  }, [editingShape])
+  }, [editingShape, editingShapeId])
 
   // Determinar si hay algo seleccionado
   const hasSelection = selectedItem || selectedShape
@@ -30,12 +35,8 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
   const infoDetails = selectedItem 
     ? [
         `Marca: ${selectedItem.brand || 'Sin marca'}`,
-        `ID: ${selectedItem.id}`,
-        `Página: ${selectedItem.page}`,
-        `X: ${Math.round(selectedItem.x)}px`,
-        `Y: ${Math.round(selectedItem.y)}px`,
-        `Ancho: ${selectedItem.width}px`,
-        `Alto: ${selectedItem.height}px`
+        `Item Code: ${selectedItem.itemCode || 'N/A'}`,
+        `Item Group: ${selectedItem.itemGroup || 'N/A'}`
       ]
     : selectedShape
     ? [
@@ -76,6 +77,13 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
                 {selectedItem.hasBorder ? '✓ Resaltado' : 'Resaltado'}
               </button>
 
+              <button
+                onClick={() => toggleItemForros(selectedItem.id)}
+                className={`btn ${selectedItem.hasForros ? 'btn-active' : 'btn-inactive'}`}
+              >
+                {selectedItem.hasForros ? '✓ Forros' : 'Forros'}
+              </button>
+
               {percentageOptions.map(percentage => (
                 <button
                   key={percentage}
@@ -104,6 +112,13 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
                 {selectedShape.hasBorder ? '✓ Resaltado' : 'Resaltado'}
               </button>
 
+              <button
+                onClick={() => toggleShapeForros(selectedShape.id)}
+                className={`btn ${selectedShape.hasForros ? 'btn-active' : 'btn-inactive'}`}
+              >
+                {selectedShape.hasForros ? '✓ Forros' : 'Forros'}
+              </button>
+
               {percentageOptions.map(percentage => (
                 <button
                   key={percentage}
@@ -128,6 +143,9 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
               <button disabled className="btn btn-inactive opacity-50">
                 Resaltado
               </button>
+              <button disabled className="btn btn-inactive opacity-50">
+                Forros
+              </button>
               {percentageOptions.map(percentage => (
                 <button
                   key={percentage}
@@ -146,6 +164,7 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
 
         {/* Input de texto - siempre visible */}
         <input
+          ref={inputRef}
           type="text"
           value={editText}
           onChange={(e) => {
@@ -165,9 +184,7 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
             }
           }}
           onBlur={() => onEditingShapeChange?.(null)}
-          autoFocus={editingShapeId !== null}
           disabled={!selectedShape}
-          placeholder={selectedShape ? 'Editar texto...' : 'Selecciona una forma para editar'}
           className="inspector-input"
         />
       </div>

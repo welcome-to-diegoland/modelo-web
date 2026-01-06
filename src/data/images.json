@@ -9,6 +9,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
     "title": "Mountain Landscape",
     "brand": "NatureView Pro",
+    "itemCode": "01-001-001",
+    "itemGroup": "12345",
     "hasBorder": false
   },
   {
@@ -21,6 +23,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1469022563149-aa64dbd37dc0?w=300&h=400&fit=crop",
     "title": "Forest Scene",
     "brand": "EcoImage",
+    "itemCode": "01-001-002",
+    "itemGroup": "23456",
     "hasBorder": false
   },
   {
@@ -33,6 +37,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=300&fit=crop",
     "title": "Ocean View",
     "brand": "SeaScape Media",
+    "itemCode": "01-001-003",
+    "itemGroup": "34567",
     "hasBorder": false
   },
   {
@@ -45,6 +51,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1470252649378-9c29740ff023?w=300&h=300&fit=crop",
     "title": "Desert Dunes",
     "brand": "SandBox Creative",
+    "itemCode": "02-001-001",
+    "itemGroup": "45678",
     "hasBorder": false
   },
   {
@@ -57,6 +65,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=300&h=500&fit=crop",
     "title": "City Lights",
     "brand": "UrbanLens",
+    "itemCode": "02-001-002",
+    "itemGroup": "56789",
     "hasBorder": false
   },
   {
@@ -69,6 +79,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop",
     "title": "Beach Sunset",
     "brand": "Coastal Dreams",
+    "itemCode": "01-002-001",
+    "itemGroup": "67890",
     "hasBorder": false
   },
   {
@@ -81,6 +93,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe3e?w=300&h=450&fit=crop",
     "title": "Green Valley",
     "brand": "Verdant Studios",
+    "itemCode": "01-002-002",
+    "itemGroup": "78901",
     "hasBorder": false
   },
   {
@@ -93,6 +107,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
     "title": "Snow Peak",
     "brand": "Arctic Photos",
+    "itemCode": "02-002-001",
+    "itemGroup": "89012",
     "hasBorder": false
   },
   {
@@ -105,6 +121,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=300&h=300&fit=crop",
     "title": "Urban Architecture",
     "brand": "MetroVisuals",
+    "itemCode": "02-002-002",
+    "itemGroup": "90123",
     "hasBorder": false
   },
   {
@@ -117,6 +135,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=400&h=300&fit=crop",
     "title": "Tropical Beach",
     "brand": "Paradise Shots",
+    "itemCode": "02-002-003",
+    "itemGroup": "01234",
     "hasBorder": false
   },
   {
@@ -129,6 +149,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=300&h=300&fit=crop",
     "title": "Night Sky",
     "brand": "Celestial Images",
+    "itemCode": "01-003-001",
+    "itemGroup": "11234",
     "hasBorder": false
   },
   {
@@ -141,6 +163,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1453614512568-c4024d13c247?w=300&h=450&fit=crop",
     "title": "Waterfall",
     "brand": "FlowScape Media",
+    "itemCode": "01-003-002",
+    "itemGroup": "21234",
     "hasBorder": false
   },
   {
@@ -153,6 +177,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1506361197048-46a72bb0bb59?w=400&h=300&fit=crop",
     "title": "Mountain Peak",
     "brand": "Alpine Visuals",
+    "itemCode": "02-003-001",
+    "itemGroup": "31234",
     "hasBorder": false
   },
   {
@@ -165,6 +191,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=400&fit=crop",
     "title": "Alpine Lakes",
     "brand": "LakeSide Photos",
+    "itemCode": "01-003-003",
+    "itemGroup": "41234",
     "hasBorder": false
   },
   {
@@ -177,6 +205,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&h=300&fit=crop",
     "title": "Autumn Forest",
     "brand": "Seasonal Shots",
+    "itemCode": "02-003-002",
+    "itemGroup": "51234",
     "hasBorder": false
   }
 ]

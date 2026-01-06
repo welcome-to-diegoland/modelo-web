@@ -9,7 +9,7 @@ type HeaderToolsProps = {
 }
 
 export default function HeaderTools({ drawingMode = 'select', onDrawingModeChange }: HeaderToolsProps) {
-  const { items, shapes, selectedId, selectItem, initializeItems } = useStore()
+  const { items, shapes, selectedId, selectItem, initializeItems, clearAllShapes, clearEverything } = useStore()
 
   const handleReloadData = () => {
     localStorage.removeItem('modelo-document')
@@ -17,10 +17,15 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
     selectItem(null)
   }
 
-  const handleClear = () => {
-    if (window.confirm('¿Estás seguro de que deseas limpiar todo?')) {
-      localStorage.removeItem('modelo-document')
-      window.location.reload()
+  const handleClearShapes = () => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar todas las formas?')) {
+      clearAllShapes()
+    }
+  }
+
+  const handleClearAll = () => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar todo? Esta acción no se puede deshacer.')) {
+      clearEverything()
     }
   }
 
@@ -66,11 +71,18 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
           Deseleccionar
         </button>
         <button
-          onClick={handleClear}
+          onClick={handleClearShapes}
+          className="btn btn-small btn-danger"
+          title="Limpiar solo formas"
+        >
+          Limpiar Formas
+        </button>
+        <button
+          onClick={handleClearAll}
           className="btn btn-small btn-danger"
           title="Limpiar todo (no se puede deshacer)"
         >
-          Limpiar
+          Limpiar Todo
         </button>
       </div>
     </header>

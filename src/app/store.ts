@@ -10,12 +10,16 @@ type Store = {
   initializeItems: (items: Item[]) => void
   deleteItem: (id: string) => void
   toggleItemBorder: (id: string) => void
+  toggleItemForros: (id: string) => void
   toggleItemPercentage: (id: string, percentage: number) => void
   addShape: (shape: Shape) => void
   deleteShape: (id: string) => void
   updateShape: (id: string, updates: Partial<Shape>) => void
   toggleShapeBorder: (id: string) => void
+  toggleShapeForros: (id: string) => void
   toggleShapePercentage: (id: string, percentage: number) => void
+  clearAllShapes: () => void
+  clearEverything: () => void
 }
 
 const STORAGE_KEY = 'modelo-document'
@@ -84,6 +88,15 @@ export const useStore = create<Store>((set) => ({
       return { items: updated }
     }),
 
+  toggleItemForros: (id) =>
+    set((state) => {
+      const updated = state.items.map(i =>
+        i.id === id ? { ...i, hasForros: !i.hasForros } : i
+      )
+      saveToStorage(updated)
+      return { items: updated }
+    }),
+
   toggleItemPercentage: (id, percentage) =>
     set((state) => {
       const updated = state.items.map(i => {
@@ -133,6 +146,15 @@ export const useStore = create<Store>((set) => ({
       return { shapes: updated }
     }),
 
+  toggleShapeForros: (id) =>
+    set((state) => {
+      const updated = state.shapes.map(s =>
+        s.id === id ? { ...s, hasForros: !s.hasForros } : s
+      )
+      saveShapesToStorage(updated)
+      return { shapes: updated }
+    }),
+
   toggleShapePercentage: (id, percentage) =>
     set((state) => {
       const updated = state.shapes.map(s => {
@@ -145,5 +167,18 @@ export const useStore = create<Store>((set) => ({
       })
       saveShapesToStorage(updated)
       return { shapes: updated }
+    }),
+
+  clearAllShapes: () =>
+    set(() => {
+      saveShapesToStorage([])
+      return { shapes: [], selectedId: null }
+    }),
+
+  clearEverything: () =>
+    set(() => {
+      saveToStorage([])
+      saveShapesToStorage([])
+      return { items: [], shapes: [], selectedId: null }
     })
 }))
