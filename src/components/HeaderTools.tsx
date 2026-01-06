@@ -134,28 +134,28 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
           className={`btn btn-small ${drawingMode === 'draw' ? 'btn-active' : ''}`}
           title="Agregar forma"
         >
-          Agregar Forma
+          <i className="fa-solid fa-border-none"></i> Forma
         </button>
         <button
           onClick={() => setIsSearchModalOpen(true)}
           className="btn btn-small"
           title="Buscar y agregar producto"
         >
-          🔍 Buscar Producto
+          <i className="fas fa-search"></i> Buscar
         </button>
         <button
           onClick={handleAutoLayout}
           className="btn btn-small"
           title={getModeLabel()}
         >
-          Auto 1
+          <i className="fa-solid fa-grip"></i> Auto 1
         </button>
         <button
           onClick={handleAutoLayoutAll}
           className="btn btn-small"
           title="Auto-acomodar todas las páginas simultáneamente"
         >
-          Auto All
+          <i className="fa-solid fa-grip"></i> Auto All
         </button>
         <button
           onClick={handleReloadData}
