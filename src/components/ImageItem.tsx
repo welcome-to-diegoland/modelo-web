@@ -28,7 +28,7 @@ export function DraggableImage({
 
   // Si hay error de imagen o no cargó, mostrar rectángulo gris con información
   if (imageError || status === 'failed') {
-    const fontSize = Math.max(8, Math.min(11, item.width / 35))
+    const fontSize = 9
     const padding = 6
     const totalHeight = item.height
     const contentHeight = totalHeight - padding * 2
@@ -69,7 +69,7 @@ export function DraggableImage({
           width={item.width - padding * 2}
           align="center"
           verticalAlign="middle"
-          lineHeight={0.9}
+          lineHeight={1.2}
         />
         {/* Ícono de resaltado si tiene borde */}
         {item.hasBorder && (
