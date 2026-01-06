@@ -48,15 +48,15 @@ export function DraggableImage({
           onDragEnd(newX, newY)
         }}
       >
-        {/* Rectángulo gris de fondo con outline */}
+        {/* Rectángulo gris de fondo con outline - azul si está seleccionada */}
         <Rect
           x={0}
           y={0}
           width={item.width}
           height={item.height}
           fill="#e5e7eb"
-          stroke="#000000"
-          strokeWidth={1}
+          stroke={strokeColor || '#000000'}
+          strokeWidth={strokeWidth || 1}
         />
         {/* Texto combinado: Título\nMarca\nItemCode - TODO EN BOLD */}
         <Text
@@ -205,14 +205,14 @@ export function DraggableImage({
         height={item.height}
         onError={() => setImageError(true)}
       />
-      {/* Outline negro para la imagen */}
+      {/* Outline para la imagen - azul si está seleccionada, negro si no */}
       <Rect
         x={0}
         y={0}
         width={item.width}
         height={item.height}
-        stroke="#000000"
-        strokeWidth={1}
+        stroke={strokeColor || '#000000'}
+        strokeWidth={strokeWidth || 1}
         fill={null}
         pointerEvents="none"
       />

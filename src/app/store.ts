@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { Item, Shape } from './types'
+import { CONFIG, getPageHeight, getPageFromYPosition, getRelativeYInPage } from './config'
 
 type Store = {
   items: Item[]
@@ -25,6 +26,7 @@ type Store = {
   cycleLayoutMode: () => void
   setZoom: (zoom: number) => void
   autoLayoutPage: (pageId: number, pageWidth: number, pageHeight: number, pageX: number, pageY: number) => void
+  autoLayoutAllPages: (pageWidth: number, pageHeight: number) => void
 }
 
 const STORAGE_KEY = 'modelo-document'
@@ -61,7 +63,7 @@ export const useStore = create<Store>((set) => ({
   shapes: loadShapesFromStorage(),
   selectedId: null,
   layoutMode: 1,
-  zoom: 1,
+  zoom: 0.8,
 
   selectItem: (id) => set({ selectedId: id }),
 
@@ -75,39 +77,22 @@ export const useStore = create<Store>((set) => ({
 
   moveItem: (id, x, y) =>
     set((state) => {
+      const pageHeight = getPageHeight(CONFIG.PAGE_WIDTH_PX)
+      const pageGap = CONFIG.PAGE_GAP_PX
+      
       const updated = state.items.map(i => {
         if (i.id === id) {
-          const FIXED_PAGE_HEIGHT = 851
-          const PAGE_GAP = 50
-          
-          // Determinar en qué página debería estar basándose en Y
-          // Y viene relativo a la página actual del item
-          // Necesitamos calcular Y global para determinar página
+          // Calcular Y global basado en la página actual
           let yGlobal = y
-          if (i.page === 1) {
-            yGlobal = y
-          } else if (i.page === 2) {
-            yGlobal = y + FIXED_PAGE_HEIGHT + PAGE_GAP
+          for (let p = 1; p < i.page; p++) {
+            yGlobal += pageHeight + pageGap
           }
           
-          // Determinar nueva página
-          let newPage = 1
-          let newY = y
+          // Determinar nueva página basada en Y global
+          const newPage = getPageFromYPosition(yGlobal, pageHeight, pageGap)
           
-          // Si yGlobal sugiere que está en página 2
-          if (yGlobal >= FIXED_PAGE_HEIGHT + PAGE_GAP) {
-            newPage = 2
-            // Convertir a coordenadas de página 2
-            if (i.page === 1) {
-              newY = y - (FIXED_PAGE_HEIGHT + PAGE_GAP)
-            }
-          } else {
-            // Si yGlobal sugiere que está en página 1
-            newPage = 1
-            if (i.page === 2) {
-              newY = y + (FIXED_PAGE_HEIGHT + PAGE_GAP)
-            }
-          }
+          // Convertir a coordenadas relativas de la nueva página
+          const newY = getRelativeYInPage(yGlobal, newPage, pageHeight, pageGap)
           
           return { ...i, x, y: newY, page: newPage }
         }
@@ -384,5 +369,162 @@ export const useStore = create<Store>((set) => ({
 
       saveToStorage(updated)
       return { items: updated }
-    })
+    }),
+
+  autoLayoutAllPages: (pageWidth, pageHeight) =>
+    set((state) => {
+      let updated = [...state.items]
+
+      // Aplicar autoLayout a cada página usando la misma lógica de autoLayoutPage
+      for (let pageId = 1; pageId <= CONFIG.TOTAL_PAGES; pageId++) {
+        const rowItems = updated.filter(i => {
+          return i.y >= 0 && i.y < pageHeight && i.page === pageId
+        })
+        
+        if (rowItems.length === 0) continue
+
+        const padding = 10
+        const contentWidth = pageWidth - padding * 2  // 580px para página de 600px
+        const GAP = 5
+        const mode = state.layoutMode
+
+        let sortedItems: Item[] = [...rowItems]
+
+        // MODO 2: Ordenar por altura descendente
+        if (mode === 2) {
+          sortedItems.sort((a, b) => b.height - a.height)
+        }
+        // MODO 3: Ordenar por ancho descendente (intenta llenar mejor)
+        else if (mode === 3) {
+          sortedItems.sort((a, b) => b.width - a.width)
+        }
+        // MODO 1: Sin orden especial
+
+        // Agrupar en filas
+        const rows: Item[][] = []
+        let currentRow: Item[] = []
+        let currentRowWidth = 0
+
+        for (const item of sortedItems) {
+          const itemWidth = item.width
+          const wouldFit = currentRowWidth === 0 || (currentRowWidth + itemWidth + GAP <= contentWidth)
+          
+          if (wouldFit) {
+            currentRow.push(item)
+            currentRowWidth += itemWidth + (currentRow.length > 1 ? GAP : 0)
+          } else {
+            if (currentRow.length > 0) {
+              rows.push([...currentRow])
+            }
+            currentRow = [item]
+            currentRowWidth = itemWidth
+          }
+        }
+        
+        if (currentRow.length > 0) {
+          rows.push([...currentRow])
+        }
+
+        // Calcular qué cabe en la página blanca vs qué va al gris
+        let currentY = padding
+        const placedItems: Set<string> = new Set()
+        const rowsToPlace: { row: Item[], y: number }[] = []
+        const allOverflowItems: Item[] = []
+
+        for (const row of rows) {
+          const rowHeight = Math.max(...row.map(i => i.height))
+          
+          if (currentY + rowHeight <= pageHeight - padding) {
+            // Cabe en la página
+            rowsToPlace.push({ row, y: currentY })
+            row.forEach(item => placedItems.add(item.id))
+            currentY += rowHeight + GAP
+          } else {
+            // Este renglón no cabe, todos sus items van al gris
+            const overflowItems = row.filter(item => !placedItems.has(item.id))
+            allOverflowItems.push(...overflowItems)
+          }
+        }
+
+        // Organizar todos los items overflow en filas verticales dentro del gris
+        const overflowRows: Item[][] = []
+        let overflowCurrentRow: Item[] = []
+        let overflowCurrentWidth = 0
+        const grayContentWidth = 1800 - pageWidth - 20 // Ancho disponible en gris
+
+        for (const overflowItem of allOverflowItems) {
+          const itemWidth = overflowItem.width
+          const wouldFit = overflowCurrentWidth === 0 || (overflowCurrentWidth + itemWidth + GAP <= grayContentWidth)
+          
+          if (wouldFit) {
+            overflowCurrentRow.push(overflowItem)
+            overflowCurrentWidth += itemWidth + (overflowCurrentRow.length > 1 ? GAP : 0)
+          } else {
+            if (overflowCurrentRow.length > 0) {
+              overflowRows.push([...overflowCurrentRow])
+            }
+            overflowCurrentRow = [overflowItem]
+            overflowCurrentWidth = itemWidth
+          }
+        }
+        
+        if (overflowCurrentRow.length > 0) {
+          overflowRows.push([...overflowCurrentRow])
+        }
+
+        // Crear mapa de item ID a su posición en overflow
+        const overflowPositions: Map<string, { x: number, y: number }> = new Map()
+        let overflowY = padding
+
+        for (const overflowRow of overflowRows) {
+          const overflowRowHeight = Math.max(...overflowRow.map(i => i.height))
+          
+          // Verificar que no se salga del renglón
+          if (overflowY + overflowRowHeight > pageHeight - padding) {
+            break // No cabe más verticalmente
+          }
+
+          let overflowX = pageWidth + 10
+          for (const overflowItem of overflowRow) {
+            overflowPositions.set(overflowItem.id, { x: overflowX, y: overflowY })
+            overflowX += overflowItem.width + GAP
+          }
+
+          overflowY += overflowRowHeight + GAP
+        }
+
+        // Actualizar positions para esta página
+        updated = updated.map((item) => {
+          // Solo procesar items de la página específica
+          if (!rowItems.find(r => r.id === item.id)) {
+            return item
+          }
+
+          // Si está en rowsToPlace, posicionar en página (parte blanca)
+          for (const { row, y } of rowsToPlace) {
+            const itemInRow = row.find(i => i.id === item.id)
+            if (itemInRow) {
+              let x = padding
+              for (const rowItem of row) {
+                if (rowItem.id === item.id) {
+                  return { ...item, x, y, page: pageId }
+                }
+                x += rowItem.width + GAP
+              }
+            }
+          }
+
+          // Si está en overflow, usar las posiciones pre-calculadas
+          const overflowPos = overflowPositions.get(item.id)
+          if (overflowPos) {
+            return { ...item, x: overflowPos.x, y: overflowPos.y, page: pageId }
+          }
+          
+          return item
+        })
+      }
+
+      saveToStorage(updated)
+      return { items: updated }
+    }),
 }))

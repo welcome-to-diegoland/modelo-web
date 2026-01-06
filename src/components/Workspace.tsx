@@ -6,9 +6,7 @@ import { PageComponent } from './PageCanvas'
 import { DraggableImage } from './ImageItem'
 import { ShapeItem } from './ShapeItem'
 import initialImages from '../data/images.json'
-
-// Aspecto A4 vertical: 210mm x 297mm = 1.414
-const A4_ASPECT_RATIO = 297 / 210
+import { CONFIG, getPageHeight, getTotalCanvasHeight, getPageYPosition } from '../app/config'
 
 interface Dimensions {
   pageWidth: number
@@ -16,13 +14,11 @@ interface Dimensions {
   canvasWidth: number
   canvasHeight: number
   marginWidth: number
-  page1X: number
-  page1Y: number
-  page2X: number
-  page2Y: number
   marginLeftX: number
   marginRightX: number
   pageGap: number
+  totalPages: number
+  pagePositions: { [key: number]: number } // Mapa de pageNumber -> yPosition
 }
 
 type DrawingMode = 'select' | 'draw'
@@ -39,56 +35,57 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
   const stageRef = useRef<Konva.Stage>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const { items, shapes, selectedId, selectItem, moveItem, initializeItems, addShape, zoom } = useStore()
+  
+  const pageHeight = getPageHeight(CONFIG.PAGE_WIDTH_PX)
+  const totalCanvasHeight = getTotalCanvasHeight(CONFIG.TOTAL_PAGES, pageHeight, CONFIG.PAGE_GAP_PX)
+  
+  // Precomputar posiciones de páginas
+  const pagePositions: { [key: number]: number } = {}
+  for (let i = 1; i <= CONFIG.TOTAL_PAGES; i++) {
+    pagePositions[i] = getPageYPosition(i, pageHeight, CONFIG.PAGE_GAP_PX)
+  }
+  
   const [dimensions, setDimensions] = useState<Dimensions>({
-    pageWidth: 400,
-    pageHeight: 563,
-    canvasWidth: 560,
-    canvasHeight: 1276,
-    marginWidth: 80,
-    page1X: 80,
-    page1Y: 0,
-    page2X: 80,
-    page2Y: 613,
+    pageWidth: CONFIG.PAGE_WIDTH_PX,
+    pageHeight: pageHeight,
+    canvasWidth: CONFIG.PAGE_WIDTH_PX + CONFIG.CANVAS_MARGIN_WIDTH_PX * 2,
+    canvasHeight: totalCanvasHeight,
+    marginWidth: CONFIG.CANVAS_MARGIN_WIDTH_PX,
     marginLeftX: 0,
-    marginRightX: 480,
-    pageGap: 50
+    marginRightX: CONFIG.PAGE_WIDTH_PX + CONFIG.CANVAS_MARGIN_WIDTH_PX,
+    pageGap: CONFIG.PAGE_GAP_PX,
+    totalPages: CONFIG.TOTAL_PAGES,
+    pagePositions
   })
+  
   const [isDrawing, setIsDrawing] = useState(false)
   const [startPos, setStartPos] = useState({ x: 0, y: 0 })
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 })
 
-  // Calcular dimensiones responsivas
+  // Calcular dimensiones basadas en configuración
   useEffect(() => {
-    const calculateDimensions = () => {
-      // Tamaño FIJO de la página A4
-      const FIXED_PAGE_WIDTH = 600 // Ancho fijo
-      const FIXED_PAGE_HEIGHT = Math.round(FIXED_PAGE_WIDTH * (297 / 210)) // Proporción A4
-      const PAGE_GAP = 50
-      
-      // Canvas: margen (600) + página (600) + margen (600) = 1800px
-      // Las 2 páginas comparten el mismo ancho, apiladas verticalmente
-      const canvasWidth = FIXED_PAGE_WIDTH * 3
-      const canvasHeight = FIXED_PAGE_HEIGHT * 2 + PAGE_GAP
-      
-      setDimensions({
-        pageWidth: FIXED_PAGE_WIDTH,
-        pageHeight: FIXED_PAGE_HEIGHT,
-        canvasWidth: Math.floor(canvasWidth),
-        canvasHeight: Math.floor(canvasHeight),
-        marginWidth: FIXED_PAGE_WIDTH,
-        marginLeftX: 0,
-        page1X: FIXED_PAGE_WIDTH,
-        page1Y: 0,
-        page2X: FIXED_PAGE_WIDTH,
-        page2Y: FIXED_PAGE_HEIGHT + PAGE_GAP,
-        marginRightX: FIXED_PAGE_WIDTH * 2,
-        pageGap: PAGE_GAP
-      })
+    const newPageHeight = getPageHeight(CONFIG.PAGE_WIDTH_PX)
+    const newCanvasHeight = getTotalCanvasHeight(CONFIG.TOTAL_PAGES, newPageHeight, CONFIG.PAGE_GAP_PX)
+    const newCanvasWidth = CONFIG.PAGE_WIDTH_PX + CONFIG.CANVAS_MARGIN_WIDTH_PX * 2
+    
+    // Precomputar posiciones
+    const newPagePositions: { [key: number]: number } = {}
+    for (let i = 1; i <= CONFIG.TOTAL_PAGES; i++) {
+      newPagePositions[i] = getPageYPosition(i, newPageHeight, CONFIG.PAGE_GAP_PX)
     }
-
-    calculateDimensions()
-    window.addEventListener('resize', calculateDimensions)
-    return () => window.removeEventListener('resize', calculateDimensions)
+    
+    setDimensions({
+      pageWidth: CONFIG.PAGE_WIDTH_PX,
+      pageHeight: newPageHeight,
+      canvasWidth: newCanvasWidth,
+      canvasHeight: newCanvasHeight,
+      marginWidth: CONFIG.CANVAS_MARGIN_WIDTH_PX,
+      marginLeftX: 0,
+      marginRightX: CONFIG.PAGE_WIDTH_PX + CONFIG.CANVAS_MARGIN_WIDTH_PX,
+      pageGap: CONFIG.PAGE_GAP_PX,
+      totalPages: CONFIG.TOTAL_PAGES,
+      pagePositions: newPagePositions
+    })
   }, [])
 
   // Notificar cambios de dimensiones
@@ -113,15 +110,19 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
       const containerHeight = container.clientHeight
       const centerPoint = scrollTop + containerHeight / 2
 
-      // Determinamos cuál página está más visible
-      const page1Bottom = dimensions.page1Y + dimensions.pageHeight
-      const page2Top = dimensions.page2Y
-
-      if (centerPoint < page2Top) {
-        onActivePageChange?.(1)
-      } else {
-        onActivePageChange?.(2)
+      // Determinar cuál página está más visible
+      let activePage = 1
+      for (let i = 1; i <= CONFIG.TOTAL_PAGES; i++) {
+        const pageYStart = dimensions.pagePositions[i]
+        const pageYEnd = pageYStart + dimensions.pageHeight
+        
+        if (centerPoint >= pageYStart && centerPoint < pageYEnd) {
+          activePage = i
+          break
+        }
       }
+      
+      onActivePageChange?.(activePage)
     }
 
     container.addEventListener('scroll', handleScroll)
@@ -187,53 +188,42 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
           }}
         >
           <Layer>
-            {/* Página 1 */}
-            <PageComponent
-              pageId={1}
-              x={dimensions.page1X}
-              y={dimensions.page1Y}
-              width={dimensions.pageWidth}
-              height={dimensions.pageHeight}
-            />
+            {/* Renderizar todas las páginas dinámicamente */}
+            {Array.from({ length: CONFIG.TOTAL_PAGES }).map((_, index) => {
+              const pageNumber = index + 1
+              const pageY = dimensions.pagePositions[pageNumber]
+              return (
+                <PageComponent
+                  key={`page-${pageNumber}`}
+                  pageId={pageNumber}
+                  x={CONFIG.CANVAS_MARGIN_WIDTH_PX}
+                  y={pageY}
+                  width={dimensions.pageWidth}
+                  height={dimensions.pageHeight}
+                />
+              )
+            })}
 
-            {/* Página 2 */}
-            <PageComponent
-              pageId={2}
-              x={dimensions.page2X}
-              y={dimensions.page2Y}
-              width={dimensions.pageWidth}
-              height={dimensions.pageHeight}
-            />
-
-            {/* Imágenes página 1 */}
-            {items.filter(item => item.page === 1).map(item => (
-              <DraggableImage
-                key={item.id}
-                item={item}
-                selected={item.id === selectedId}
-                onSelect={() => selectItem(item.id)}
-                onDragEnd={(x, y) => {
-                  moveItem(item.id, x, y)
-                }}
-                pageOffsetX={dimensions.page1X}
-                pageOffsetY={dimensions.page1Y}
-              />
-            ))}
-
-            {/* Imágenes página 2 */}
-            {items.filter(item => item.page === 2).map(item => (
-              <DraggableImage
-                key={item.id}
-                item={item}
-                selected={item.id === selectedId}
-                onSelect={() => selectItem(item.id)}
-                onDragEnd={(x, y) => {
-                  moveItem(item.id, x, y)
-                }}
-                pageOffsetX={dimensions.page2X}
-                pageOffsetY={dimensions.page2Y}
-              />
-            ))}
+            {/* Renderizar imágenes de todas las páginas dinámicamente */}
+            {Array.from({ length: CONFIG.TOTAL_PAGES }).map((_, pageIndex) => {
+              const pageNumber = pageIndex + 1
+              const pageY = dimensions.pagePositions[pageNumber]
+              return items
+                .filter(item => item.page === pageNumber)
+                .map(item => (
+                  <DraggableImage
+                    key={item.id}
+                    item={item}
+                    selected={item.id === selectedId}
+                    onSelect={() => selectItem(item.id)}
+                    onDragEnd={(x, y) => {
+                      moveItem(item.id, x, y)
+                    }}
+                    pageOffsetX={CONFIG.CANVAS_MARGIN_WIDTH_PX}
+                    pageOffsetY={pageY}
+                  />
+                ))
+            })}
 
             {/* TODAS las formas */}
             {shapes.map(shape => (

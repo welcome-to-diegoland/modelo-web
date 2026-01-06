@@ -1,33 +1,50 @@
 import { Item } from '../app/types'
 
 /**
- * Algoritmo simple de auto-layout
- * Distribuye imágenes en una cuadrícula básica
+ * Algoritmo de auto-layout que acomoda items dentro de su página
+ * Procesa items en orden, respetando su página asignada
+ * Si no cabe en altura, baja de fila hasta que quepa
  */
 export const autoLayoutItems = (items: Item[], pageWidth: number, pageHeight: number): Item[] => {
   const PADDING = 20
   const MIN_GAP = 10
 
-  let x = PADDING
-  let y = PADDING
-  let maxHeightInRow = 0
+  // Rastrear posición por página
+  const pagePositions: { [key: number]: { x: number; y: number; maxHeightInRow: number } } = {}
 
   return items.map((item) => {
-    // Si no cabe en la fila actual, pasar a la siguiente
-    if (x + item.width > pageWidth - PADDING) {
+    const page = item.page || 1
+    
+    // Inicializar página si no existe
+    if (!pagePositions[page]) {
+      pagePositions[page] = { x: PADDING, y: PADDING, maxHeightInRow: 0 }
+    }
+
+    let { x, y, maxHeightInRow } = pagePositions[page]
+
+    // Verificar y bajar mientras sea necesario
+    let attempts = 0
+    while ((y + item.height > pageHeight - PADDING) && attempts < 10) {
+      x = PADDING
+      y += maxHeightInRow + MIN_GAP
+      maxHeightInRow = 0
+      attempts++
+    }
+
+    // Si no cabe en ancho, bajar de fila
+    if (x + item.width > pageWidth + PADDING) {
       x = PADDING
       y += maxHeightInRow + MIN_GAP
       maxHeightInRow = 0
     }
 
-    // Si no cabe en la página, mover a siguiente página
-    if (y + item.height > pageHeight - PADDING && item.page === 1) {
-      return { ...item, page: 2, x: PADDING, y: PADDING }
-    }
+    const newItem = { ...item, x, y, page }
 
-    const newItem = { ...item, x, y }
+    // Actualizar posición para siguiente item
     x += item.width + MIN_GAP
     maxHeightInRow = Math.max(maxHeightInRow, item.height)
+
+    pagePositions[page] = { x, y, maxHeightInRow }
 
     return newItem
   })

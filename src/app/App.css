@@ -265,6 +265,15 @@ html, body {
   background-color: #dc2626;
 }
 
+.btn-info {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #2563eb;
+}
+
 /* Canvas */
 canvas {
   border: none;

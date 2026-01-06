@@ -1,5 +1,9 @@
+import { useState } from 'react'
 import { useStore } from '../app/store'
 import initialImages from '../data/images.json'
+import { CONFIG, getPageHeight } from '../app/config'
+import { autoLayoutItems } from '../layout/autoLayout'
+import SearchProductModal from './SearchProductModal'
 
 type DrawingMode = 'select' | 'draw'
 
@@ -11,12 +15,20 @@ type HeaderToolsProps = {
 }
 
 export default function HeaderTools({ drawingMode = 'select', onDrawingModeChange, activePage = 1, dimensions }: HeaderToolsProps) {
-  const { items, selectedId, selectItem, initializeItems, clearAllShapes, clearEverything, autoLayoutPage, layoutMode, cycleLayoutMode, zoom, setZoom } = useStore()
+  const { items, selectedId, selectItem, initializeItems, clearAllShapes, clearEverything, autoLayoutPage, autoLayoutAllPages, autoLayoutAllItems, layoutMode, cycleLayoutMode, zoom, setZoom } = useStore()
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
 
-  const activePageItemCount = items.filter(item => item.page === activePage).length
+  const activePageItemCount = items.filter(item => 
+    item.page === activePage && 
+    item.x >= 0 && 
+    item.y >= 0 && 
+    item.x < (dimensions?.pageWidth || 600) && 
+    item.y < (dimensions?.pageHeight || 800)
+  ).length
 
   const handleReloadData = () => {
     localStorage.removeItem('modelo-document')
+    // Cargar datos del JSON tal como están (sin modificar coordenadas)
     initializeItems(initialImages as any)
     selectItem(null)
   }
@@ -43,11 +55,19 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
     cycleLayoutMode()
     
     setTimeout(() => {
-      if (activePage === 1) {
-        autoLayoutPage(1, dimensions.pageWidth, dimensions.pageHeight, dimensions.page1X, dimensions.page1Y)
-      } else {
-        autoLayoutPage(2, dimensions.pageWidth, dimensions.pageHeight, dimensions.page2X, dimensions.page2Y)
-      }
+      // Funciona para CUALQUIER página
+      autoLayoutPage(activePage, dimensions.pageWidth, dimensions.pageHeight, 0, 0)
+    }, 0)
+  }
+
+  const handleAutoLayoutAll = () => {
+    if (!dimensions) return
+    
+    cycleLayoutMode()
+    
+    setTimeout(() => {
+      // Aplica a TODAS las páginas
+      autoLayoutAllPages(dimensions.pageWidth, dimensions.pageHeight)
     }, 0)
   }
 
@@ -66,7 +86,7 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
   }
 
   const handleZoomReset = () => {
-    setZoom(1)
+    setZoom(0.8)
   }
 
   return (
@@ -117,11 +137,25 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
           Agregar Forma
         </button>
         <button
+          onClick={() => setIsSearchModalOpen(true)}
+          className="btn btn-small"
+          title="Buscar y agregar producto"
+        >
+          🔍 Buscar Producto
+        </button>
+        <button
           onClick={handleAutoLayout}
           className="btn btn-small"
           title={getModeLabel()}
         >
-          {getModeLabel()}
+          Auto 1
+        </button>
+        <button
+          onClick={handleAutoLayoutAll}
+          className="btn btn-small"
+          title="Auto-acomodar todas las páginas simultáneamente"
+        >
+          Auto All
         </button>
         <button
           onClick={handleReloadData}
@@ -152,6 +186,12 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
           Limpiar Todo
         </button>
       </div>
+
+      <SearchProductModal 
+        isOpen={isSearchModalOpen}
+        activePage={activePage}
+        onClose={() => setIsSearchModalOpen(false)}
+      />
     </header>
   )
 }
