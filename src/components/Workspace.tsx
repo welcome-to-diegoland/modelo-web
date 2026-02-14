@@ -133,15 +133,10 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
     <div className="workspace">
       {/* Canvas UNIFICADO - Contiene todo */}
       <div ref={containerRef} className="canvas-container" style={{ cursor: drawingMode === 'draw' ? 'crosshair' : 'default' }}>
-        <div style={{ width: `${dimensions.canvasWidth}px`, height: `${dimensions.canvasHeight}px` }}>
-          <Stage 
-            ref={stageRef}
-            width={dimensions.canvasWidth} 
-            height={dimensions.canvasHeight}
-            scaleX={zoom}
-            scaleY={zoom}
-            offsetX={(dimensions.canvasWidth * (1 - zoom)) / 2}
-            offsetY={0}
+        <Stage 
+          ref={stageRef}
+          width={dimensions.canvasWidth} 
+          height={dimensions.canvasHeight}
           onMouseDown={(e) => {
             if (drawingMode === 'draw') {
               const pos = e.target.getStage()!.getPointerPosition()!
@@ -251,7 +246,6 @@ export default function Workspace({ drawingMode, onDrawingModeChange, onEditingS
             )}
           </Layer>
         </Stage>
-        </div>
       </div>
     </div>
   )

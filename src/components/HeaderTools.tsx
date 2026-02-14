@@ -15,8 +15,25 @@ type HeaderToolsProps = {
 }
 
 export default function HeaderTools({ drawingMode = 'select', onDrawingModeChange, activePage = 1, dimensions }: HeaderToolsProps) {
-  const { items, selectedId, selectItem, initializeItems, clearAllShapes, clearEverything, autoLayoutPage, autoLayoutAllPages, autoLayoutAllItems, layoutMode, cycleLayoutMode, zoom, setZoom } = useStore()
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+  try {
+    const store = useStore()
+    
+    const { 
+      items = [], 
+      selectedId, 
+      selectItem, 
+      initializeItems, 
+      clearAllShapes, 
+      clearEverything, 
+      autoLayoutPage, 
+      autoLayoutAllPages, 
+      layoutMode = 1, 
+      cycleLayoutMode, 
+      zoom = 0.8, 
+      setZoom 
+    } = store || {}
+    
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
 
   const activePageItemCount = items.filter(item => 
     item.page === activePage && 
@@ -99,9 +116,6 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
       <div className="header-center">
         <span className="badge">{activePageItemCount} imágenes</span>
         <span className="badge badge-page">Página {activePage}</span>
-        {selectedId && (
-          <span className="badge badge-selected">1 seleccionada</span>
-        )}
       </div>
 
       <div className="header-right">
@@ -193,5 +207,16 @@ export default function HeaderTools({ drawingMode = 'select', onDrawingModeChang
         onClose={() => setIsSearchModalOpen(false)}
       />
     </header>
-  )
+  ) 
+  } catch (error) {
+    console.error('Error in HeaderTools:', error)
+    return (
+      <header className="header-tools">
+        <div className="header-left">
+          <h1 className="title">Modelo Web</h1>
+          <p className="subtitle">Error loading header</p>
+        </div>
+      </header>
+    )
+  }
 }

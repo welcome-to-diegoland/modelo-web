@@ -1,53 +1,91 @@
-# Modelo Web MVP 🎯
+# Modelo Web 🎯
 
-Editor visual para acomodar bloques de imagen en dos páginas carta verticales con drag & drop, selección y persistencia de estado.
+Editor visual para organizar layouts de catálogos de productos con drag & drop, anotaciones y herramientas de edición.
 
-## ✅ Features del MVP
+## ✨ Características
 
-### Layout
-- ✓ Dos páginas carta verticales (A4) lado a lado
-- ✓ Espacio gris libre a izquierda y derecha
-- ✓ Header superior fijo con información
-- ✓ Panel inferior con info de imagen seleccionada
+### Layout y Páginas
+- ✓ Múltiples páginas carta verticales (A4)
+- ✓ Drag & drop libre entre páginas
+- ✓ Espacios grises libres a los lados
+- ✓ Auto-layout inteligente (3 modos)
 
-### Imágenes / Bloques
+### Gestión de Imágenes
 - ✓ Carga desde JSON
-- ✓ Drag libre (pueden encimarse)
-- ✓ Se pueden mover dentro de la página
-- ✓ Se pueden mover fuera (zona gris)
-- ✓ Se pueden pasar entre páginas
+- ✓ Búsqueda de productos
+- ✓ Drag libre (pueden sobreponerse)
+- ✓ Movimiento entre páginas
+- ✓ Eliminación individual
 
-### Interacción
-- ✓ Click para seleccionar
-- ✓ Borde azul visible cuando está seleccionada
-- ✓ Panel inferior muestra metadata
-- ✓ Botón para toggle de borde
-- ✓ Botón para eliminar imagen
+### Marcadores y Descuentos
+- ✓ **Resaltado**: Marca productos importantes (círculo verde con "!")
+- ✓ **Forros**: Indica forros especiales (círculo amarillo con "F")
+- ✓ **Descuentos**: Porcentajes 10%, 15%, 20%, 40%, 50% (círculos rojos)
 
-### Estado & Persistencia
-- ✓ Todo vive en JSON (data/images.json)
+### Feature "Resumir" ⭐ NUEVO
+- ✓ Herramienta para marcar áreas de imagen que no se quieren
+- ✓ Líneas rectas rosas sobre la imagen
+- ✓ Click punto inicial → Click punto final
+- ✓ No modifica imagen original (overlay vectorial)
+- ✓ Se puede editar después (agregar más líneas)
+
+### Estado y Persistencia
 - ✓ Guardado automático en localStorage
-- ✓ Cargas al refrescar
+- ✓ Recarga al refrescar navegador
+- ✓ Botón para resetear desde JSON original
 
-## ❌ Fuera del MVP (próximas fases)
-- Zoom
-- Snap a guías
-- Validación de colisiones
-- Export PDF
-- Multiusuario
-- Historial / undo
-- IA
+## 🚀 Inicio Rápido
+
+```bash
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
+npm run dev
+
+# Abrir en navegador
+http://localhost:5173
+```
 
 ## 📦 Stack Técnico
 
-- **React 18** - UI
-- **TypeScript** - Tipado
-- **Zustand** - Estado global
-- **Konva** - Rendering gráfico
-- **React-Konva** - Binding React
-- **use-image** - Carga de imágenes en Konva
+- **React 18** + **TypeScript** - UI y tipado fuerte
+- **Zustand** - Estado global simplificado
+- **Konva + React-Konva** - Canvas de alto rendimiento
+- **Vite** - Build tool ultrarrápido
+- **use-image** - Carga optimizada de imágenes
 
-## 📁 Estructura
+## 🎮 Uso
+
+### Seleccionar Imagen
+Click en cualquier imagen para seleccionarla (borde azul)
+
+### Mover Imagen  
+Arrastra con el mouse. Puede moverse entre páginas libremente.
+
+### Marcar Productos
+Panel inferior cuando hay imagen seleccionada:
+- **Resaltado**: Producto importante
+- **Forros**: Tiene forros especiales
+- **10-50%**: Descuentos disponibles
+
+### Resumir Imagen
+1. Selecciona una imagen
+2. Click en botón **"Resumir"** (panel inferior)
+3. En el modal, click en **"Raya"**
+4. Click en punto inicial, luego en punto final → línea recta rosa
+5. Repite para más líneas
+6. Click en **"Guardar"** para aplicar
+
+### Auto-Layout
+Botones en header:
+- **Auto 1**: Ordena página actual (cambia entre 3 modos)
+- **Auto All**: Ordena todas las páginas simultáneamente
+
+### Buscar Productos
+Click en **"Buscar"** para abrir catálogo y agregar nuevos productos
+
+## 📁 Estructura del Proyecto
 
 ```
 src/

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Item, Shape } from './types'
+import { Item, Shape, LineData } from './types'
 import { CONFIG, getPageHeight, getPageFromYPosition, getRelativeYInPage } from './config'
 
 type Store = {
@@ -15,6 +15,8 @@ type Store = {
   toggleItemBorder: (id: string) => void
   toggleItemForros: (id: string) => void
   toggleItemPercentage: (id: string, percentage: number) => void
+  updateItemImage: (id: string, imageUrl: string) => void
+  updateItemLines: (id: string, lines: LineData[]) => void
   addShape: (shape: Shape) => void
   deleteShape: (id: string) => void
   updateShape: (id: string, updates: Partial<Shape>) => void
@@ -145,6 +147,24 @@ export const useStore = create<Store>((set) => ({
         }
         return i
       })
+      saveToStorage(updated)
+      return { items: updated }
+    }),
+
+  updateItemImage: (id, imageUrl) =>
+    set((state) => {
+      const updated = state.items.map(i =>
+        i.id === id ? { ...i, imageUrl, imageVersion: Date.now() } : i
+      )
+      saveToStorage(updated)
+      return { items: updated }
+    }),
+
+  updateItemLines: (id, lines) =>
+    set((state) => {
+      const updated = state.items.map(i =>
+        i.id === id ? { ...i, lines } : i
+      )
       saveToStorage(updated)
       return { items: updated }
     }),

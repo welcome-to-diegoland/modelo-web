@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useStore } from '../app/store'
+import { LineData } from '../app/types'
+import ImageEditModal from './ImageEditModal'
 
 type InspectorPanelProps = {
   editingShapeId?: string | null
@@ -7,9 +9,13 @@ type InspectorPanelProps = {
 }
 
 export default function InspectorPanel({ editingShapeId, onEditingShapeChange }: InspectorPanelProps) {
-  const { items, shapes, selectedId, toggleItemBorder, toggleItemForros, deleteItem, toggleItemPercentage, updateShape, deleteShape, toggleShapeBorder, toggleShapeForros, toggleShapePercentage } = useStore()
+  const { items, shapes, selectedId, toggleItemBorder, toggleItemForros, deleteItem, toggleItemPercentage, updateShape, deleteShape, toggleShapeBorder, toggleShapeForros, toggleShapePercentage, updateItemLines } = useStore()
   const [editText, setEditText] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingImageUrl, setEditingImageUrl] = useState('')
+  const [editingImageId, setEditingImageId] = useState('')
+  const [existingLines, setExistingLines] = useState<LineData[]>([])
 
   const selectedItem = items.find(i => i.id === selectedId)
   const selectedShape = shapes.find(s => s.id === selectedId)
@@ -49,6 +55,27 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
     : []
 
   const percentageOptions = [10, 15, 20, 40, 50]
+
+  const handleResumir = () => {
+    if (!selectedId || !selectedItem) {
+      return
+    }
+    
+    setEditingImageUrl(selectedItem.imageUrl)
+    setEditingImageId(selectedItem.id)
+    setExistingLines(selectedItem.lines || [])
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveLines = (lines: LineData[]) => {
+    if (editingImageId) {
+      updateItemLines(editingImageId, lines)
+    }
+    setIsEditModalOpen(false)
+    setEditingImageUrl('')
+    setEditingImageId('')
+    setExistingLines([])
+  }
 
   return (
     <div className="inspector-panel">
@@ -99,6 +126,13 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
                 className="btn btn-danger"
               >
                 Eliminar
+              </button>
+
+              <button
+                onClick={handleResumir}
+                className="btn btn-primary"
+              >
+                Resumir
               </button>
             </>
           )}
@@ -188,6 +222,15 @@ export default function InspectorPanel({ editingShapeId, onEditingShapeChange }:
           className="inspector-input"
         />
       </div>
+
+      <ImageEditModal
+        isOpen={isEditModalOpen}
+        imageUrl={editingImageUrl}
+        imageId={editingImageId}
+        existingLines={existingLines}
+        onSave={handleSaveLines}
+        onClose={() => setIsEditModalOpen(false)}
+      />
     </div>
   )
 }

@@ -1,3 +1,8 @@
+export type LineData = {
+  id: string
+  points: number[]
+}
+
 export type Item = {
   id: string
   x: number
@@ -6,6 +11,8 @@ export type Item = {
   height: number
   page: number
   imageUrl: string
+  imageVersion?: number
+  lines?: LineData[]
   title?: string
   brand?: string
   itemCode?: string

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Image as KonvaImage, Rect, Text, Group, Circle } from 'react-konva'
+import { Image as KonvaImage, Rect, Text, Group, Circle, Line } from 'react-konva'
 import useImage from 'use-image'
 import { Item } from '../app/types'
 
@@ -20,7 +20,9 @@ export function DraggableImage({
   pageOffsetX = 0,
   pageOffsetY = 0
 }: DraggableImageProps) {
-  const [image, status] = useImage(item.imageUrl)
+  // Usar imageVersion para forzar recarga cuando cambia la imagen
+  const imageUrlWithVersion = item.imageVersion ? `${item.imageUrl}#v${item.imageVersion}` : item.imageUrl
+  const [image, status] = useImage(imageUrlWithVersion)
   const [imageError, setImageError] = useState(false)
 
   const strokeColor = selected ? '#3b82f6' : undefined
@@ -299,6 +301,31 @@ export function DraggableImage({
             offsetX={7}
             offsetY={10}
           />
+        </>
+      )}
+      {/* Líneas dibujadas para "Resumir" - escalar de coordenadas normalizadas a píxeles */}
+      {item.lines && item.lines.length > 0 && (
+        <>
+          {item.lines.map((line) => {
+            // Convertir coordenadas normalizadas (0-1) a píxeles del item
+            const scaledPoints = [
+              line.points[0] * item.width,  // x1
+              line.points[1] * item.height, // y1
+              line.points[2] * item.width,  // x2
+              line.points[3] * item.height  // y2
+            ]
+            return (
+              <Line
+                key={line.id}
+                points={scaledPoints}
+                stroke="#ec4899"
+                strokeWidth={3}
+                lineCap="round"
+                lineJoin="round"
+                listening={false}
+              />
+            )
+          })}
         </>
       )}
     </Group>
